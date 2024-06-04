@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+          input::-webkit-outer-spin-button,
+            input::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+
+            input[type="number"] {
+                -moz-appearance: textfield;
+            }
+        .container{
+            display: flex;
+            flex-direction: row;
+           justify-content: center;
+           padding: 10px;
+           margin: 5px;
+        }
+        .bookContent{
+            width: auto;
+        }
+        label{
+            padding: 5px;
+        }
+        #columns{
+            display: flex;
+            flex-direction: column;
+            padding: 5px;
+        }
+        #submit-button {
+            display: block;
+            margin: 0 auto;
+        }
+        .loading {
+            display: none;
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            text-align: center; 
+            margin-top: 20px; 
+            }
+    </style>
+</head>
+<body>
+    <form id="bookForm">
+       <div class="container">
+          <div id="columns">
+             <label for="bookInputForm">
+                Book Title:
+             </label>
+             <input type="text" id="bookInputForm" name="bookInput" required>
+          </div>
+          <div id="columns">
+             <label for="bookChapter">
+                Book Chapter:
+             </label>
+             <input type="number" id="bookChapter" name="bookChapterInput" required>
+          </div>
+          <div id="columns">
+             <label for="questionNums">
+                Number of Questions:
+             </label>
+             <input type="number" id="questionNums" name="questionNumsInput" required>
+          </div>
+       </div>
+       <button type="submit" id="submit-button">
+          Submit
+       </button>
+    </form>
+    <div id="loadingText" class="loading">Loading</div>
+    <div id="bookContent" class="bookContent">
+    </div>
+ </body>
+<script>
+
+
+const bookTitle = document.getElementById('bookInputForm');
+const bookChapter = document.getElementById('bookChapter');
+const questionCount = document.getElementById('questionNums');
+const bookContent = document.getElementById("bookContent");
+
+
+document.getElementById('bookForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    console.log(bookTitle.value + " " + bookChapter.value);
+    bookContent.innerHTML = "";
+    loadingText.style.display = "block";
+    startLoadingAnimation(); 
+    callChatGPT(bookTitle.value,bookChapter.value,questionCount.value);
+})
+
+function startLoadingAnimation() {
+    let loadingCount = 1;
+    loadingInterval = setInterval(() => {
+        if (loadingCount <= 4) {
+            loadingText.innerHTML += ".";
+            loadingCount++;
+        } else {
+            loadingText.innerHTML = "Loading.";
+            loadingCount = 2;
+        }
+    }, 300); 
+}
+
+function stopLoadingAnimation() {
+    clearInterval(loadingInterval);
+}
+
+function separateChapters(chaptersString) {
+    const chaptersArray = chaptersString.split('\n');
+    return chaptersArray;
+}
+
+
+async function callChatGPT(bookTitle, bookChapter, questionCount) {
+            const apiKey = 'your key here '; 
+            const apiUrl = 'https://api.openai.com/v1/chat/completions';
+
+            const headers = {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            };
+
+            const data = {
+               // model: 'gpt-4',
+                model: 'gpt-3.5-turbo',
+                messages: [
+                    { role: 'system', content: 'You are a helpful assistant.' },
+                    { role: 'user', content: `Give me a quiz for ${bookTitle} chapter: ${bookChapter} multiple choice limit ${questionCount} questions with the answer aswell, 
+                    do not include any additional information only the question and multiple choice. 
+                    For example do not inlude "Sure here are ..." also do not add a newline until the question is written. 
+                    Follow this format: 1. What is one detail that describes the Valley of Ashes?
+                    A. A vibrant area full of life
+                    B. A desolate and dreary industrial waste land
+                    C. A high-end neighborhood for the wealthy
+                    D. A serene countryside retreat
+                    Answer: B`  
+                }
+                ]
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const responseData = await response.json();
+                console.log(responseData.choices);
+                const bookChapters = (separateChapters(responseData.choices[0].message.content));
+                createAndShowQuiz(bookChapters);
+            } catch (error) {
+                console.error('Error calling ChatGPT API:', error);
+            }
+            finally {
+                loadingText.style.display = "none";
+                stopLoadingAnimation();
+            }
+        }
+
+        function createAndShowQuiz(arr) {
+            let counter = 0;
+            let questionList = null;
+            let answers = [];
+            arr.forEach((element, index) => {
+                if(element != ""){ 
+                    if (counter === 0){
+                        const question = document.createElement("h1");
+                        question.innerHTML = element;
+                        bookContent.append(question);
+                        questionList = document.createElement("ul");
+                        bookContent.append(questionList);
+                        counter++;
+                    }
+                    else{
+                        if (counter > 4){
+                            answers.push(element);
+                            console.log(element);
+                            counter = 0;
+                        }
+                    else { 
+                        const listItem = document.createElement("li");
+                        listItem.textContent = element;
+                        questionList.appendChild(listItem);
+                        counter++;
+                        }
+                    }
+                   
+                    
+                
+                }
+            });
+}
+</script>
+</html>
+
