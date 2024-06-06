@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>  
     <title>Document</title>
     <style>
           input::-webkit-outer-spin-button,
@@ -14,7 +17,7 @@
             input[type="number"] {
                 -moz-appearance: textfield;
             }
-        .container{
+        .formContainer{
             display: flex;
             flex-direction: row;
            justify-content: center;
@@ -44,11 +47,29 @@
             text-align: center; 
             margin-top: 20px; 
             }
+        .factDiv{
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            text-align: center; 
+            margin-top: 20px; 
+        }
+        fieldset {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 0px solid #4CAF50;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        #bookForm{
+            padding: 5px;
+        }
+
     </style>
 </head>
 <body>
     <form id="bookForm">
-       <div class="container">
+       <div class="formContainer">
           <div id="columns">
              <label for="bookInputForm">
                 Book Title:
@@ -73,29 +94,53 @@
        </button>
     </form>
     <div id="loadingText" class="loading">Loading</div>
-    <div id="bookContent" class="bookContent">
-    </div>
+    <div id="bookContent" class="bookContent"></div>
+
+    <div class="modal" tabindex="-1" id = "quizResultModal" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Quiz Results:</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div id ="modal-body-result" class="modal-body"></div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
  </body>
 <script>
 
-
+//grab DOM elements
 const bookTitle = document.getElementById('bookInputForm');
 const bookChapter = document.getElementById('bookChapter');
 const questionCount = document.getElementById('questionNums');
 const bookContent = document.getElementById("bookContent");
 
-
-document.getElementById('bookForm').addEventListener('submit', (e) => {
+//when button is submitted
+document.getElementById('bookForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     console.log(bookTitle.value + " " + bookChapter.value);
+    //reset content div
     bookContent.innerHTML = "";
+    //remove none from styling to show loading. -> loading.. etc animation
     loadingText.style.display = "block";
     startLoadingAnimation(); 
+    // adds a random fact with the loading
+    addFact();
+    // pass book title, chapter, and question amount to ChatGPT 
     callChatGPT(bookTitle.value,bookChapter.value,questionCount.value);
 })
 
+// add "." to the end of loading to give animation effect
 function startLoadingAnimation() {
     let loadingCount = 1;
+    
     loadingInterval = setInterval(() => {
         if (loadingCount <= 4) {
             loadingText.innerHTML += ".";
@@ -107,18 +152,41 @@ function startLoadingAnimation() {
     }, 300); 
 }
 
+//Once async function returns a callback we stop the loading animation
 function stopLoadingAnimation() {
     clearInterval(loadingInterval);
 }
 
+// pass in api response
+// seperate it so we can display
 function separateChapters(chaptersString) {
     const chaptersArray = chaptersString.split('\n');
     return chaptersArray;
 }
 
+//calls grabRandomFact and waits to get fact
+async function addFact(){
+    const factText = await grabRandomFact();
+    // if promise is not null create div and show fact
+            if (factText) {
+                const factElement = document.createElement('div');
+                factElement.className = "factDiv";
+                factElement.innerHTML = "Randon Fact:<br>"+factText;
+                bookContent.appendChild(factElement);
+    // else create div and show error
+            } else {
+                const errorElement = document.createElement('div');
+                errorElement.className = "factDiv";
+                errorElement.innerHTML = 'Could not fetch a random fact.';
+                bookContent.appendChild(errorElement);
+            }
+}
+
 
 async function callChatGPT(bookTitle, bookChapter, questionCount) {
-            const apiKey = 'your key here '; 
+
+    // set information for api call
+            const apiKey = '';
             const apiUrl = 'https://api.openai.com/v1/chat/completions';
 
             const headers = {
@@ -129,9 +197,10 @@ async function callChatGPT(bookTitle, bookChapter, questionCount) {
             const data = {
                // model: 'gpt-4',
                 model: 'gpt-3.5-turbo',
+                // prompt to get consistent response 
                 messages: [
                     { role: 'system', content: 'You are a helpful assistant.' },
-                    { role: 'user', content: `Give me a quiz for ${bookTitle} chapter: ${bookChapter} multiple choice limit ${questionCount} questions with the answer aswell, 
+                    { role: 'user', content: `Give me a quiz for ${bookTitle} chapter: ${bookChapter} multiple choice with ${questionCount} questions with the answer aswell, 
                     do not include any additional information only the question and multiple choice. 
                     For example do not inlude "Sure here are ..." also do not add a newline until the question is written. 
                     Follow this format: 1. What is one detail that describes the Valley of Ashes?
@@ -143,7 +212,7 @@ async function callChatGPT(bookTitle, bookChapter, questionCount) {
                 }
                 ]
             };
-
+            // post request
             try {
                 const response = await fetch(apiUrl, {
                     method: 'POST',
@@ -156,51 +225,135 @@ async function callChatGPT(bookTitle, bookChapter, questionCount) {
                 }
 
                 const responseData = await response.json();
+                // verify response
                 console.log(responseData.choices);
+                //seperate response into an array
                 const bookChapters = (separateChapters(responseData.choices[0].message.content));
+                // clear book content for quiz
+                bookContent.innerHTML = "";
+                //shows book quiz
                 createAndShowQuiz(bookChapters);
+                
             } catch (error) {
                 console.error('Error calling ChatGPT API:', error);
             }
             finally {
+                // once callback is completed reset loadingText to none
                 loadingText.style.display = "none";
+                // stop the interval
                 stopLoadingAnimation();
             }
         }
 
-        function createAndShowQuiz(arr) {
-            let counter = 0;
-            let questionList = null;
-            let answers = [];
-            arr.forEach((element, index) => {
-                if(element != ""){ 
-                    if (counter === 0){
-                        const question = document.createElement("h1");
-                        question.innerHTML = element;
-                        bookContent.append(question);
-                        questionList = document.createElement("ul");
-                        bookContent.append(questionList);
-                        counter++;
-                    }
-                    else{
-                        if (counter > 4){
-                            answers.push(element);
-                            console.log(element);
-                            counter = 0;
-                        }
-                    else { 
-                        const listItem = document.createElement("li");
-                        listItem.textContent = element;
-                        questionList.appendChild(listItem);
-                        counter++;
-                        }
-                    }
-                   
-                    
-                
+    //organize book chapters into a form with the question as h3
+    // in an unordered list with the answers options as li
+function createAndShowQuiz(arr) {
+    let counter = 0;
+    let questionList = null;
+    let answers = [];
+    const form = document.createElement("form");
+    
+    arr.forEach((element, index) => {
+        if (element != "") { 
+            // c = 0 means we are at the question
+            if (counter === 0) {
+                const fieldset = document.createElement("fieldset");
+                questionList = document.createElement("ul");
+                const question = document.createElement("h3");
+                question.innerHTML = element;
+                fieldset.appendChild(question);
+                fieldset.appendChild(questionList);
+                form.appendChild(fieldset);
+                counter++;
+            } else {
+                // c > 4 means we are at the answer 
+                // save it in array
+                if (counter > 4) {
+                    answers.push(element);
+                    console.log(element);
+                    counter = 0;
+                } else { 
+                    // Append choices as radio buttons to unordered list
+                    const listItem = document.createElement("li");
+                    const radioInput = document.createElement("input");
+                    radioInput.type = "radio";
+                    radioInput.name = `question${Math.floor(index / 6)}`; // Ensure each question has a unique name
+                    radioInput.value = element;
+                    const label = document.createElement("label");
+                    label.appendChild(radioInput);
+                    label.appendChild(document.createTextNode(element));
+                    listItem.appendChild(label);
+                    questionList.appendChild(listItem);
+                    counter++;
                 }
-            });
+            }
+        }
+    });
+
+
+     // Create and append a submit button
+    const submitButton = document.createElement("button");
+    submitButton.type = "submit";
+    submitButton.textContent = "Submit";
+    submitButton.className = "btn btn-seconday";
+    submitButton.setAttribute("id", "resultModal");
+    submitButton.setAttribute("data-toggle", "modal");
+    submitButton.setAttribute("data-target", "#quizResultModal");
+    form.appendChild(submitButton);
+
+    // Append the form to the bookContent element
+    bookContent.appendChild(form);
+
+    // when form is submitted check if answers are correct 
+    form.addEventListener("submit", submitQuizForm(answers));
+
 }
+
+
+// apicall for fact 
+async function grabRandomFact(){
+                const apiURL = "https://api.api-ninjas.com/v1/facts";
+                try{
+                    const response = await fetch(apiURL,{
+                        method: 'GET',
+                        headers: { 'X-Api-Key': ''},
+                        contentType: 'application/json',
+                    });
+
+                    if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const responseData = await response.json();
+                console.log(responseData[0].fact)
+                return responseData[0].fact;
+
+                }catch (error) {
+                console.error('Error calling api-ninjas:', error);
+            }
+            }
+
+ function submitQuizForm(correctAnswers) {
+                return function(event) {
+                   event.preventDefault(); // Prevent form submission
+                   const modal = document.getElementById("modal-body-result");
+                   //get user selected answers 
+                    const radioInputs = document.querySelectorAll("input[type='radio']:checked");
+                     // Check answers
+                    const score = [...radioInputs].map((input, index) => {
+                        const selectedAnswer = input.value;
+                        const formattedSelectedAnswer = "Answer: " + selectedAnswer[0];
+
+                        return formattedSelectedAnswer === correctAnswers[index] ? 1 : 0;
+                    }).reduce((acc, current) => acc + current, 0);
+
+                    const percentageScore = (score / correctAnswers.length) * 100;
+                    modal.innerHTML = `Your score is: ${percentageScore.toFixed(2)}%`;
+
+
+                };
+}
+
 </script>
 </html>
 
