@@ -4,12 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>  
     <title>Document</title>
     <style>
+        body {
+                background: #accdff;
+                background: linear-gradient(to right, #accdff, #ffffff,#ffffff, #accdff); /* Adjust colors as needed */
+
+            }
+
           input::-webkit-outer-spin-button,
-            input::-webkit-inner-spin-button {
+          input::-webkit-inner-spin-button {
                 -webkit-appearance: none;
                 margin: 0;
             }
@@ -25,8 +32,11 @@
            margin: 5px;
         }
         .bookContent{
+            display: flex;
+            justify-content: center;
             width: auto;
         }
+      
         label{
             padding: 5px;
         }
@@ -35,9 +45,12 @@
             flex-direction: column;
             padding: 5px;
         }
-        #submit-button {
+        #submit-button, #quizSubmitBtn{
             display: block;
             margin: 0 auto;
+        }
+        #quizSubmitBtn{
+            margin-bottom: 20px;
         }
         .loading {
             display: none;
@@ -55,19 +68,74 @@
             margin-top: 20px; 
         }
         fieldset {
+     
+            background: #ffffff;
             margin-bottom: 20px;
             padding: 15px;
-            border: 0px solid #4CAF50;
-            border-radius: 8px;
-            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            border: 4px solid #bdbdbd;
+            width: 800px;
+                border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
         }
         #bookForm{
+            padding: 5px 5px 20px 5px;
+
+        }
+        legend{
+            background: #ffffff;
             padding: 5px;
+            border-radius: 10px;
+            margin-bottom: 5px;
         }
 
+        ul {
+            list-style-type: none;
+            padding: 10px;
+            margin-right: 400px;
+            font-size: 16px;
+        }
+        #modal-body-result{
+            font-size: 16px;
+            font-weight: bold;
+        }
+        #incorrectAnswers{
+            padding: 5px;
+        }
+        #header{
+            margin-right: 400px;
+            margin-left:585px;
+        
+        }
+        input[type="radio"] {
+        margin-right: 5px; 
+        }
+        #user-options{
+            display: flex;
+            flex-direction: row;
+         }
+        #user-options-links {
+     
+            margin-top: 33px;
+        }
+
+        #user-options-links a{
+            margin-right: 10px; 
+        
+        }
+        
+       
     </style>
 </head>
 <body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div id ="user-options">
+                <h1 id ="header">Chapter Checkup</h1>
+                <div id ="user-options-links">
+                <a class="nav-link" href="/home.html" >Home</a>
+                <a class="nav-link" href="/signIn.html" >Sign In </a>
+            </div>
+            </div>
+        </nav>
     <form id="bookForm">
        <div class="formContainer">
           <div id="columns">
@@ -89,7 +157,7 @@
              <input type="number" id="questionNums" name="questionNumsInput" required>
           </div>
        </div>
-       <button type="submit" id="submit-button">
+       <button type="submit" class = "btn btn-seconday" id="submit-button">
           Submit
        </button>
     </form>
@@ -105,9 +173,13 @@
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
-            <div id ="modal-body-result" class="modal-body"></div>
+            <div id ="modal-body-result" class="modal-body">
+                <div id="scoreDisplay"></div>
+                <div id="incorrectAnswers"></div>
+            </div>
+        
             <div class="modal-footer">
-              <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+              <button type="button" id = "modal-close" class="btn btn-primary" data-dismiss="modal" >Close</button>
             </div>
           </div>
         </div>
@@ -186,7 +258,7 @@ async function addFact(){
 async function callChatGPT(bookTitle, bookChapter, questionCount) {
 
     // set information for api call
-            const apiKey = '';
+            const apiKey = 'sk-proj-';
             const apiUrl = 'https://api.openai.com/v1/chat/completions';
 
             const headers = {
@@ -245,25 +317,27 @@ async function callChatGPT(bookTitle, bookChapter, questionCount) {
             }
         }
 
-    //organize book chapters into a form with the question as h3
+    //organize book chapters into a form with the question as header
     // in an unordered list with the answers options as li
-function createAndShowQuiz(arr) {
+function createAndShowQuiz(bookChapters) {
     let counter = 0;
     let questionList = null;
+    let questions = [];
     let answers = [];
     const form = document.createElement("form");
     
-    arr.forEach((element, index) => {
+    bookChapters.forEach((element, index) => {
         if (element != "") { 
             // c = 0 means we are at the question
             if (counter === 0) {
                 const fieldset = document.createElement("fieldset");
+                const legend = document.createElement("legend");
                 questionList = document.createElement("ul");
-                const question = document.createElement("h3");
-                question.innerHTML = element;
-                fieldset.appendChild(question);
+                legend.textContent = element;
+                fieldset.appendChild(legend);
                 fieldset.appendChild(questionList);
                 form.appendChild(fieldset);
+                questions.push(element);
                 counter++;
             } else {
                 // c > 4 means we are at the answer 
@@ -296,7 +370,7 @@ function createAndShowQuiz(arr) {
     submitButton.type = "submit";
     submitButton.textContent = "Submit";
     submitButton.className = "btn btn-seconday";
-    submitButton.setAttribute("id", "resultModal");
+    submitButton.setAttribute("id", "quizSubmitBtn");
     submitButton.setAttribute("data-toggle", "modal");
     submitButton.setAttribute("data-target", "#quizResultModal");
     form.appendChild(submitButton);
@@ -305,18 +379,18 @@ function createAndShowQuiz(arr) {
     bookContent.appendChild(form);
 
     // when form is submitted check if answers are correct 
-    form.addEventListener("submit", submitQuizForm(answers));
+    form.addEventListener("submit", submitQuizForm(answers,questions));
 
 }
 
 
 // apicall for fact 
 async function grabRandomFact(){
-                const apiURL = "https://api.api-ninjas.com/v1/facts";
+                const apiURL = "https://api.api-.com/v1/facts";
                 try{
                     const response = await fetch(apiURL,{
                         method: 'GET',
-                        headers: { 'X-Api-Key': ''},
+                        headers: { 'X-Api-Key': '=='},
                         contentType: 'application/json',
                     });
 
@@ -333,24 +407,49 @@ async function grabRandomFact(){
             }
             }
 
- function submitQuizForm(correctAnswers) {
-                return function(event) {
-                   event.preventDefault(); // Prevent form submission
-                   const modal = document.getElementById("modal-body-result");
+ function submitQuizForm(correctAnswers,questions) {
+                return function(e) {
+                   e.preventDefault(); // Prevent form submission
+                   let incorrectQuestions = [];
+                   const scoreDisplay = document.getElementById("scoreDisplay");
+                   const incorrectAnswersDisplay = document.getElementById("incorrectAnswers");
+                   const closeButton = document.getElementById("modal-close");
+
                    //get user selected answers 
                     const radioInputs = document.querySelectorAll("input[type='radio']:checked");
                      // Check answers
                     const score = [...radioInputs].map((input, index) => {
+                        //get user input
                         const selectedAnswer = input.value;
+                        // format user input to match answer key
                         const formattedSelectedAnswer = "Answer: " + selectedAnswer[0];
-
+                        //if answer is wrong append to wrong answer array 
+                        if (formattedSelectedAnswer !== correctAnswers[index])
+                        {   
+                            incorrectQuestions.push(questions[index]);
+                        }
+                        // Check if the selected answer is correct and return 1 if it is, otherwise return 0
                         return formattedSelectedAnswer === correctAnswers[index] ? 1 : 0;
                     }).reduce((acc, current) => acc + current, 0);
-
+                    // calculate score
                     const percentageScore = (score / correctAnswers.length) * 100;
-                    modal.innerHTML = `Your score is: ${percentageScore.toFixed(2)}%`;
-
-
+                    // add to modal
+                    scoreDisplay.innerHTML = `Your score is: ${percentageScore.toFixed(2)}%`;
+                    // if length is grt than 0 show incorrect questions
+                    if( incorrectQuestions.length > 0 )
+                   {
+                    incorrectAnswersDisplay.innerHTML += '<br> Incorrect Questions:';
+                     incorrectQuestions.forEach(function(question) {
+                        incorrectAnswersDisplay.innerHTML += '<br>' + question;
+                    });}
+                    // else we have no incorrect answers, user got a %100
+                    else{
+                        incorrectAnswersDisplay.innerHTML = "Congratulations on the perfect score! Well done!";
+                    }
+                    //when modal is closed reset information 
+                    closeButton.addEventListener("click", function(){
+                        incorrectAnswersDisplay.innerHTML = "";
+                    })
                 };
 }
 
