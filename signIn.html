@@ -2,10 +2,80 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <title>Chapter Checkup Login</title>
+    <style> 
+            body {
+                background-color: hsl(0, 0%, 96%)
+                
+                
+            }
+        .container{
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            height: 90vh;
+            font-family: Helvetica, "Trebuchet MS", Verdana, sans-serif;
+
+        }
+        .loginForm{
+            border-radius: 10px;
+            background-color: white;
+            padding: 100px;
+            width: 1000px;
+            margin: 50px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        .signUpRedirect{
+            margin-top: 15px;
+        }
+        input{
+            width: 200px;
+            padding: 3px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            transition: border-color 0.3s ease-in-out;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #66afe9;
+            box-shadow: 0 0 5px rgba(102, 175, 233, 0.5);
+        }
+        #header{
+          color: #66afe9;
+        }
+        .information{
+            margin-right: 15px;
+        }
+        p{
+            margin: 3px;
+        }
+    </style>
 </head>
 <body>
-    
+    <div class ="container">
+        <div class = "information">
+        <h1>Log Into <span id ="header"> Chapter Checkup</span></h1>
+        <br>
+        <p>Welcome to Chapter Checkup, your ultimate destination for immersive and interactive book chapter quizzes. 
+           Whether you're a passionate reader looking to test your knowledge or a student preparing for exams,
+            Chapter Checkup offers a dynamic platform designed to enhance your understanding and retention of book chapters.</p>
+    </div>
+        <div class ="loginForm">
+    <form action="/submit-user-info" method="post">
+        <label for="name">Username:</label>
+        <input type="text" id="name" name="name"><br><br>
+        
+        <label for="Password">Password:</label>
+        <input type="Password" id="Password" name="Password"><br><br>
+        <button type="submit" class ="btn btn-primary">Submit</button>
+    </form>
+    <div class="signUpRedirect">
+        <a href="user-sign-up">Dont have an account? Sign up</a>
+    </div>
+</div>
+</div>
 </body>
 </html>

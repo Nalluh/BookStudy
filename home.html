@@ -4,15 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
-
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>  
     <title>Document</title>
     <style>
         body {
-                background: #accdff;
-                background: linear-gradient(to right, #accdff, #ffffff,#ffffff, #accdff); /* Adjust colors as needed */
-
+            background: linear-gradient(to right, #accdff, #ffffff 1000%, #accdff);
             }
 
           input::-webkit-outer-spin-button,
@@ -23,6 +20,10 @@
 
             input[type="number"] {
                 -moz-appearance: textfield;
+            }
+            input{
+                padding: 3px;
+                border-radius: 10px;
             }
         .formContainer{
             display: flex;
@@ -258,7 +259,7 @@ async function addFact(){
 async function callChatGPT(bookTitle, bookChapter, questionCount) {
 
     // set information for api call
-            const apiKey = 'sk-proj-';
+            const apiKey = '';
             const apiUrl = 'https://api.openai.com/v1/chat/completions';
 
             const headers = {
@@ -386,11 +387,11 @@ function createAndShowQuiz(bookChapters) {
 
 // apicall for fact 
 async function grabRandomFact(){
-                const apiURL = "https://api.api-.com/v1/facts";
+                const apiURL = "https://api.api-ninjas.com/v1/facts";
                 try{
                     const response = await fetch(apiURL,{
                         method: 'GET',
-                        headers: { 'X-Api-Key': '=='},
+                        headers: { 'X-Api-Key': ''},
                         contentType: 'application/json',
                     });
 
@@ -434,7 +435,7 @@ async function grabRandomFact(){
                     // calculate score
                     const percentageScore = (score / correctAnswers.length) * 100;
                     // add to modal
-                    scoreDisplay.innerHTML = `Your score is: ${percentageScore.toFixed(2)}%`;
+                    scoreDisplay.innerHTML = `Quiz score: ${percentageScore.toFixed(2)}%`;
                     // if length is grt than 0 show incorrect questions
                     if( incorrectQuestions.length > 0 )
                    {
