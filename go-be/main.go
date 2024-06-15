@@ -117,11 +117,6 @@ func submitSignUpForm(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	
-	// ************************
-	// work on this next
-	// handle duplicate emails 
-	// create a client side solution
-	// ************************
 
 	duplicateAccountQuery := "SELECT email FROM users WHERE email = $1"
 	rows, err := database.Query(duplicateAccountQuery,formData.Email)
@@ -131,16 +126,27 @@ func submitSignUpForm(w http.ResponseWriter, r *http.Request) {
     } 
 	defer rows.Close()
 
+	// if email exsists in db 
+	//return error in url
 	if rows.Next() {
-        http.Error(w, "Email already exists", http.StatusConflict)
-        return
+		http.Redirect(w, r, "/user-sign-up?error=duplicate_email", http.StatusSeeOther)
+		return
     }
-	// ************************
-	// work on this next
-	// handle duplicate emails 
-	// create a client side solution
-	// ************************
 
+	duplicateAccountQuery = "SELECT name FROM users WHERE name = $1"
+	rows, err = database.Query(duplicateAccountQuery,formData.Name)
+	if err != nil {
+        http.Error(w, "Failed to query database", http.StatusInternalServerError)
+        return
+    } 
+	defer rows.Close()
+
+	// if name exsists in db 
+	//return error in url
+	if rows.Next() {
+		http.Redirect(w, r, "/user-sign-up?error=duplicate_username", http.StatusSeeOther)
+		return
+    }
 
 
 	//db query

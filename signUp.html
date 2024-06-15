@@ -3,7 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Sign Up Form</title>
+    <style>
+        .error {
+            padding:5px;
+            color: red;
+            font-size: 0.9em;
+        }
+    </style>
 </head>
 <body>
     <h1>signUp</h1>
@@ -19,11 +26,46 @@
         <input type="password" id="confirm-password" name="confirm-password" required><br><br>
         <input type="submit" value="Sign up">
       </form>
-      {{if .ErrorMessage}}
-      <div style="color: red;">
-          <p>{{.ErrorMessage}}</p>
-      </div>
-      {{end}}
-      <div>
+      <div id="error-message" class="error"></div>
 </body>
+<script>
+    const errorMessage = document.getElementById("error-message");
+
+     document.getElementById("signup-form").addEventListener("submit", function(e) {
+            e.preventDefault();
+            let email = document.getElementById("email").value;
+            let password = document.getElementById("password").value;
+            let confirm_password = document.getElementById("confirm-password").value;
+
+
+            errorMessage.textContent = "";
+
+
+            if(password != confirm_password){
+                errorMessage.textContent = "Passwords do not match";
+                return;
+            }
+
+            this.submit();
+
+     })
+
+     function checkForDuplicateInformation(e){
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlError = urlParams.get("error");
+    
+        if (urlError === "duplicate_email"){
+            errorMessage.textContent = "Email already exists, please choose another";
+            return;
+        }
+        if (urlError === "duplicate_username"){
+            errorMessage.textContent = "Username already exists, please choose another";
+            return;
+        }
+    }
+
+    checkForDuplicateInformation();
+
+
+</script>
 </html>
