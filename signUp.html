@@ -3,52 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
     <title>Sign Up Form</title>
     <style>
+          body {
+                background-color: hsl(0, 0%, 96%)          
+            }
+          .main-container{
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            height: 90vh;
+            font-family: Helvetica, "Trebuchet MS", Verdana, sans-serif;
+
+        }
+        .sign-up-container{
+            border-radius: 10px;
+            background-color: white;
+            padding: 100px;
+            width: 550px;
+            margin: 50px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
         .error {
             padding:5px;
             color: red;
             font-size: 0.9em;
         }
+        #signup-form{
+            display: flex;
+            flex-direction: column;
+        }
+        #sign-up-header{
+            margin-bottom: 25px;
+        }
+        input{
+            width: 250px;
+            padding: 3px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            transition: border-color 0.3s ease-in-out;
+        }
+        #submit-button{
+         width: 69.58px;
+        }
+        input:focus {
+            outline: none;
+            border-color: #66afe9;
+            box-shadow: 0 0 5px rgba(102, 175, 233, 0.5);
+        }
+        #password-requirement-container{
+            border: 1px solid #ccc; 
+            padding: 10px; 
+            max-width: 300px;
+        }
+        li p {
+            display: inline;
+            margin: 0; 
+            }
+        #password-requirement-length,
+        #password-requirement-case, 
+        #password-requirement-num, 
+        #password-requirement-special{
+            color:red;
+        }
+
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+            20%, 40%, 60%, 80%, 100% { transform: translateX(10px); }
+            }
+
+        .shake {
+            animation: shake 1.0s ease-in-out;
+            }
+        #header{
+            text-align:end;
+            font-family: "calibri-";
+        }
+        .header-and-sign-up-container{
+            display: flex;
+            flex-direction: column;
+        }
+        #header-color{
+            display: inline;
+            color: #66afe9;
+        }
     </style>
 </head>
 <body>
-    <h1>signUp</h1>
+    <div class ="main-container">
+    <div class= "header-and-sign-up-container">
+    <h1 id ="header">Chapter <p id="header-color">Checkup</p></h1>   
+    <div class= "sign-up-container">
     <form id="signup-form" action = "/new-user" method="post">
-        <h2>Sign up for an account</h2>
         <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required><br><br>
+        <input type="text" id="username" name="username" required><br>
         <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required><br><br>
+        <input type="email" id="email" name="email" required><br>
         <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required><br><br>
+        <input type="password" id="password" name="password" required><br>
         <label for="confirm-password">Confirm Password:</label>
-        <input type="password" id="confirm-password" name="confirm-password" required><br><br>
-        <input type="submit" value="Sign up">
+        <input type="password" id="confirm-password" name="confirm-password" required><br>
+        <button type="submit" id="submit-button" class ="btn btn-primary">Submit</button>
       </form>
+
       <div id="error-message" class="error"></div>
+    </div>
+</div>
+
+    <div class ="password-requirement-container">
+        <h3>Password Requirements</h3>
+        <p>Your password should be:</p>
+        <ul>
+            <li>At least 8 characters long <p id ="password-requirement-length"> &#x2715; </p></li>
+            <li>Contain both uppercase and lowercase letters <p id ="password-requirement-case"> &#x2715; </p></li>
+            <li>Include at least one number <p id ="password-requirement-num"> &#x2715; </p></li>
+            <li>Have at least one special character (e.g., !@#$%^&*) <p id ="password-requirement-special"> &#x2715; </p></li>
+        </ul>
+    </div>
+</div>
 </body>
 <script>
+    // TODO
+    // form validation protect against injection and xss
+
     const errorMessage = document.getElementById("error-message");
+    const password = document.getElementById("password");
+    const email = document.getElementById("email");
+    const confirm_password = document.getElementById("confirm-password");
+    const lengthRequirement = document.getElementById("password-requirement-length");
+    const caseRequirement = document.getElementById("password-requirement-case");
+    const numberRequirement = document.getElementById("password-requirement-num");
+    const specialCharRequirement = document.getElementById("password-requirement-special");
+
 
      document.getElementById("signup-form").addEventListener("submit", function(e) {
             e.preventDefault();
-            let email = document.getElementById("email").value;
-            let password = document.getElementById("password").value;
-            let confirm_password = document.getElementById("confirm-password").value;
 
 
             errorMessage.textContent = "";
 
-
-            if(password != confirm_password){
+            if(password.value != confirm_password.value){
                 errorMessage.textContent = "Passwords do not match";
                 return;
             }
 
+            if(lengthRequirement.style.color == "green" && numberRequirement.style.color == "green" && caseRequirement.style.color == "green" && specialCharRequirement.style.color == "green"){
             this.submit();
+            }
+            else{
+                shakeInputField(password);
+                shakeInputField(confirm_password);
+            }
 
      })
+     
+     password.addEventListener("input", function(e) {
+                const passwordValue = e.target.value;
+               
+
+                // Check password length
+                lengthRequirement.textContent = passwordValue.length > 7 ? "\u2713" : "\u2715";
+                lengthRequirement.style.color = passwordValue.length > 7 ? "green" : "red";
+
+                // Check for at least one lowercase and one uppercase letter
+                const hasLowercase = /[a-z]/.test(passwordValue);
+                const hasUppercase = /[A-Z]/.test(passwordValue);
+                caseRequirement.textContent = hasLowercase && hasUppercase ? "\u2713" : "\u2715";
+                caseRequirement.style.color = hasLowercase && hasUppercase ? "green" : "red";
+
+                // Check for at least one digit
+                const hasDigit = /[0-9]/.test(passwordValue); // Check if there's any digit
+                numberRequirement.textContent = hasDigit ? "\u2713" : "\u2715";
+                numberRequirement.style.color = hasDigit ? "green" : "red";
+                console.log(hasDigit);
+
+                // Check for at least one special character
+                const hasSpecialChar = /[^\w\s]/.test(passwordValue); // Matches any character that is not alphanumeric or whitespace
+                specialCharRequirement.textContent = hasSpecialChar ? "\u2713" : "\u2715";
+                specialCharRequirement.style.color = hasSpecialChar ? "green" : "red";
+
+                
+            });
 
      function checkForDuplicateInformation(e){
         const urlParams = new URLSearchParams(window.location.search);
@@ -63,6 +202,18 @@
             return;
         }
     }
+
+    function shakeInputField(inputField) {
+        inputField.classList.add('shake');
+
+        // Remove the 'shake' class after the animation ends
+        setTimeout(() => {
+            inputField.classList.remove('shake');
+        }, 1000); // Should match the animation duration (0.5s in this case)
+        }
+   
+
+
 
     checkForDuplicateInformation();
 

@@ -21,12 +21,13 @@ type FormData struct {
 
 func main() {
     // Connect to the database
-	connStr := ""
+	connStr := "s"
     database.Init(connStr)
     defer database.Close()
 
 
     // Define HTTP handlers
+	http.HandleFunc("/home", serveTemplate(("home.html")))
     http.HandleFunc("/",serveTemplate("signIn.html"))
     http.HandleFunc("/submit-user-info", submitForm)
 	http.HandleFunc("/user-sign-up", serveTemplate("signUp.html"))
