@@ -42,4 +42,8 @@ func Insert(queryString string, args ...interface{}) error {
     return nil
 }
 
+func QueryRow(queryString string, args ...interface{}) pgx.Row {
+    return db.QueryRow(context.Background(), queryString, args...)
+}
+
 

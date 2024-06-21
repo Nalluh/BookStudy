@@ -9,6 +9,7 @@ import (
     "path/filepath"
 	"github.com/Nalluh/BookStudy/database"
 	_ "github.com/jackc/pgx/v4/stdlib" 
+	"github.com/gorilla/sessions"
 )
 
 
@@ -19,20 +20,24 @@ type FormData struct {
 	Confirm_password string
 }
 
+var store = sessions.NewCookieStore([]byte("secret-key"))
+
+
 func main() {
     // Connect to the database
-	connStr := "s"
+	connStr := ""
     database.Init(connStr)
     defer database.Close()
 
 
     // Define HTTP handlers
-	http.HandleFunc("/home", serveTemplate(("home.html")))
-    http.HandleFunc("/",serveTemplate("signIn.html"))
+	http.HandleFunc("/", protectedHandler)
+    http.HandleFunc("/sign-in",serveTemplate("signIn.html"))
     http.HandleFunc("/submit-user-info", submitForm)
 	http.HandleFunc("/user-sign-up", serveTemplate("signUp.html"))
 	http.HandleFunc("/new-user",submitSignUpForm)
-
+	http.HandleFunc("/logout", logoutHandler)
+	
 
     // Start the server
     log.Println("Starting server on :8080")
@@ -40,6 +45,8 @@ func main() {
         log.Fatalf("Failed to start server: %v", err)
     }
 }	
+
+
 
 func serveTemplate(templateFile string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -53,6 +60,43 @@ func serveTemplate(templateFile string) http.HandlerFunc {
 	}
 }
 
+func isAuthenticated(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		session, err := store.Get(r, "user-logged-in")
+		//check if we have a session
+		if err != nil || session.Values["user_id"] == nil {
+			// Redirect to sign-in page or handle unauthorized access
+			http.Redirect(w, r, "/sign-in", http.StatusSeeOther)
+			return
+		}
+
+		// User is authenticated, call the next handler
+		next.ServeHTTP(w, r)
+	})
+}
+
+func protectedHandler(w http.ResponseWriter, r *http.Request) {
+	// Access user ID from session
+	session, err := store.Get(r, "user-logged-in")
+	if err != nil || session.Values["user_id"] == nil {
+		// User is not logged in, serve home page for non-logged-in users
+		serveTemplate("home.html")(w, r)
+	} else {
+		// User is logged in, serve home page for logged-in users
+		serveTemplate("home_authenticated.html")(w, r)
+	}
+}
+
+func logoutHandler(w http.ResponseWriter, r *http.Request) {
+	session, err := store.Get(r, "user-logged-in")
+	if err == nil {
+		// Clear session data
+		delete(session.Values, "user_id")
+		session.Save(r, w)
+	}
+	// Redirect to login page after logout
+	http.Redirect(w, r, "/sign-in", http.StatusSeeOther)
+}
 
 // Handler for form submission
 func submitForm(w http.ResponseWriter, r *http.Request) {
@@ -70,10 +114,47 @@ func submitForm(w http.ResponseWriter, r *http.Request) {
 	formData := FormData{Name: name, Password: password}
 
 	fmt.Printf("Name: %s , Password: %s",formData.Name, formData.Password)
- 
+	
+    accountQuery := "SELECT id FROM users WHERE name = $1 AND password = $2"
 
-    // Redirect back to the homepage after form submission
-    http.Redirect(w, r, "/", http.StatusSeeOther)
+    rows, err := database.Query(accountQuery, formData.Name, formData.Password)
+	
+	if err != nil {
+        http.Error(w, "Failed to query database", http.StatusInternalServerError)
+        return
+    } 
+	defer rows.Close()
+
+
+	var userID int
+	
+
+	if rows.Next(){
+		// if account is present log the user in 
+		// and authenticate
+
+		err = rows.Scan(&userID)
+		fmt.Println(userID)
+		if err != nil {
+            http.Error(w, "Failed to scan row", http.StatusInternalServerError)
+            return
+        }
+		
+		session, err := store.Get(r, "user-logged-in")
+		if err != nil {
+			http.Error(w, "Failed to create session", http.StatusInternalServerError)
+			return
+		}
+	
+		// Set user ID in session
+		session.Values["user_id"] =  userID
+		session.Save(r, w)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+
+	}
+	
+	// if no account found give error	
+	http.Redirect(w, r, "/sign-in?error=incorrect", http.StatusSeeOther)
 }
 
 func submitSignUpForm(w http.ResponseWriter, r *http.Request) {
@@ -160,7 +241,8 @@ func submitSignUpForm(w http.ResponseWriter, r *http.Request) {
         return
     } 
 
-    http.Redirect(w, r, "/", http.StatusSeeOther)
+    http.Redirect(w, r, "/sign-in", http.StatusSeeOther)
 
 
 }
+

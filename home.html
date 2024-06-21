@@ -9,7 +9,7 @@
     <title>Document</title>
     <style>
         body {
-            background: linear-gradient(to right, #accdff, #ffffff 1000%, #accdff);
+            background-color: hsl(0, 0%, 96%)
             }
 
           input::-webkit-outer-spin-button,
@@ -29,6 +29,7 @@
             display: flex;
             flex-direction: row;
            justify-content: center;
+           align-items: center;
            padding: 10px;
            margin: 5px;
         }
@@ -57,7 +58,7 @@
             display: none;
             font-size: 18px;
             font-weight: bold;
-            color: #333;
+            color: #66afe9;
             text-align: center; 
             margin-top: 20px; 
             }
@@ -103,8 +104,9 @@
             padding: 5px;
         }
         #header{
-            margin-right: 400px;
-            margin-left:585px;
+            color: #66afe9;
+          font-family: "calibri";
+          margin: 0px 500px;
         
         }
         input[type="radio"] {
@@ -113,30 +115,27 @@
         #user-options{
             display: flex;
             flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            padding-top: 20px;
          }
         #user-options-links {
-     
-            margin-top: 33px;
+          padding-top: 10px;
+          font-size: 16px;
         }
 
-        #user-options-links a{
-            margin-right: 10px; 
-        
-        }
+    
         
        
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <div id ="user-options">
+          <div id ="user-options">
                 <h1 id ="header">Chapter Checkup</h1>
                 <div id ="user-options-links">
-                <a class="nav-link" href="/home" >Home</a>
-                <a class="nav-link" href="/" >Sign In </a>
+                <a  href="/sign-in" > Sign In </a>
             </div>
             </div>
-        </nav>
     <form id="bookForm">
        <div class="formContainer">
           <div id="columns">
@@ -398,7 +397,7 @@ async function grabRandomFact(){
                 try{
                     const response = await fetch(apiURL,{
                         method: 'GET',
-                        headers: { 'X-Api-Key': '=='},
+                        headers: { 'X-Api-Key': ''},
                         contentType: 'application/json',
                     });
 

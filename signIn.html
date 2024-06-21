@@ -60,6 +60,11 @@
             font-size: 18px;
 
         }
+        .error {
+            padding:5px;
+            color: red;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
@@ -83,7 +88,25 @@
     <div class="signUpRedirect">
         <a href="user-sign-up">Dont have an account? Sign up</a>
     </div>
+    <div id="error-message" class="error"></div>
 </div>
 </div>
 </body>
+<script>
+
+        const errorMessage = document.getElementById("error-message");
+
+       function incorrectLogin(e){
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlError = urlParams.get("error");
+        console.log(urlError)
+        if (urlError === "incorrect"){
+            errorMessage.textContent = "Oops! It seems there was an issue with your login credentials. Please double-check your username and password and try again";
+            return;
+        }
+
+    }
+
+    incorrectLogin();
+</script>
 </html>
