@@ -81,7 +81,7 @@
         }
         #bookForm{
             padding: 5px 5px 20px 5px;
-
+         
         }
         legend{
             background: #ffffff;
@@ -103,40 +103,74 @@
         #incorrectAnswers{
             padding: 5px;
         }
-        #header{
+        #header {
             color: #66afe9;
-          font-family: "calibri";
-          margin: 0px 500px;
-        
-        }
+            font-size: 56px; 
+            font-family: "Calibri", sans-serif; 
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+            padding: 10px; 
+            text-align: center; 
+            margin: 0 auto;
+
+            }
         input[type="radio"] {
         margin-right: 5px; 
         }
-        #user-options{
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
-            padding-top: 20px;
-         }
+        #user-options {
+            text-align: center;
+            flex: 1; 
+        }
         #user-options-links {
-          padding-top: 10px;
-          font-size: 16px;
+            display: flex;
+            flex-direction: row ;
+            justify-content: space-between; 
+            align-items: flex-end; 
+            font-size: 16px;
+            text-align: center; 
+            gap: 10px; 
+            flex-shrink: 0; 
+        }
+        .base-container{
+            border-radius: 10px;
+            background-color: white;
+            padding: 5px 5px 20px 5px;
+            margin: 15px 50px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            height: 60em;
         }
 
-    
-        
+        .header-container {
+            display: flex;
+            justify-content: space-between; 
+            align-items: center; 
+            padding-top: 15px;
+            padding-bottom: 5px;
+            width: 100%; 
+            padding-left: 20px;
+            padding-right: 20px; 
+        }
+        #user-options-links a {
+            margin-left: 10px; 
+        }
+        #user-options-links a:first-child {
+            margin-left: 0; 
+        }
        
     </style>
 </head>
-<body>
+<body>  
+    <div class="base-container" id = "base-container">
+
+    <div class="header-container">
           <div id ="user-options">
                 <h1 id ="header">Chapter Checkup</h1>
+            </div>
+
                 <div id ="user-options-links">
-               
+               <a href ="/profile" > Profile</a>
                 <a  href="/logout" >Log out </a>
             </div>
-            </div>
+        </div>
     <form id="bookForm">
        <div class="formContainer">
           <div id="columns">
@@ -164,7 +198,7 @@
     </form>
     <div id="loadingText" class="loading">Loading</div>
     <div id="bookContent" class="bookContent"></div>
-
+</div>
     <div class="modal" tabindex="-1" id = "quizResultModal" role="dialog">
         <div class="modal-dialog" role="document">
           <div class="modal-content">
@@ -185,7 +219,6 @@
           </div>
         </div>
       </div>
-
  </body>
 <script>
 
@@ -308,7 +341,7 @@ async function callChatGPT(bookTitle, bookChapter, questionCount) {
                 // clear book content for quiz
                 bookContent.innerHTML = "";
                 //shows book quiz
-                createAndShowQuiz(bookChapters);
+                createAndShowQuiz(bookChapters,bookTitle,bookChapter);
                 
             } catch (error) {
                 console.error('Error calling ChatGPT API:', error);
@@ -318,12 +351,13 @@ async function callChatGPT(bookTitle, bookChapter, questionCount) {
                 loadingText.style.display = "none";
                 // stop the interval
                 stopLoadingAnimation();
+                document.getElementById("base-container").style.height = "auto";
             }
         }
 
     //organize book chapters into a form with the question as header
     // in an unordered list with the answers options as li
-function createAndShowQuiz(bookChapters) {
+function createAndShowQuiz(bookChapters,bookTitle, bookChapter) {
     let counter = 0;
     let questionList = null;
     let questions = [];
@@ -387,7 +421,7 @@ function createAndShowQuiz(bookChapters) {
     bookContent.appendChild(form);
 
     // when form is submitted check if answers are correct 
-    form.addEventListener("submit", submitQuizForm(answers,questions));
+    form.addEventListener("submit", submitQuizForm(answers,questions,bookTitle,bookChapter));
 
 }
 
@@ -415,13 +449,14 @@ async function grabRandomFact(){
             }
             }
 
- function submitQuizForm(correctAnswers,questions) {
+ function submitQuizForm(correctAnswers,questions,bookTitle,bookChapter) {
                 return function(e) {
                    e.preventDefault(); // Prevent form submission
                    let incorrectQuestions = [];
                    const scoreDisplay = document.getElementById("scoreDisplay");
                    const incorrectAnswersDisplay = document.getElementById("incorrectAnswers");
                    const closeButton = document.getElementById("modal-close");
+                   const userAnswers = [];
 
                    //get user selected answers 
                     const radioInputs = document.querySelectorAll("input[type='radio']:checked");
@@ -429,6 +464,7 @@ async function grabRandomFact(){
                     const score = [...radioInputs].map((input, index) => {
                         //get user input
                         const selectedAnswer = input.value;
+                        userAnswers.push(selectedAnswer[0]);
                         // format user input to match answer key
                         const formattedSelectedAnswer = "Answer: " + selectedAnswer[0];
                         //if answer is wrong append to wrong answer array 
@@ -454,12 +490,39 @@ async function grabRandomFact(){
                     else{
                         incorrectAnswersDisplay.innerHTML = "Congratulations on the perfect score! Well done!";
                     }
+
+                    postQuizData(bookTitle,bookChapter,percentageScore);
                     //when modal is closed reset information 
                     closeButton.addEventListener("click", function(){
                         incorrectAnswersDisplay.innerHTML = "";
                     })
                 };
 }
+                // post quiz information to backend 
+                async function postQuizData(Title,Chapter,Score) {
+                const url = 'http://localhost:8080/POST-quiz';
+                const postData = {
+                    bookTitle: Title,
+                    bookChapter: Number(Chapter),
+                    quizScore: Score
+                };
+
+                try {
+                    const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(postData),
+                    });
+
+                    if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                }
+                }
 
 </script>
 </html>

@@ -81,7 +81,7 @@
         }
         #bookForm{
             padding: 5px 5px 20px 5px;
-
+         
         }
         legend{
             background: #ffffff;
@@ -103,39 +103,68 @@
         #incorrectAnswers{
             padding: 5px;
         }
-        #header{
+        #header {
             color: #66afe9;
-          font-family: "calibri";
-          margin: 0px 500px;
-        
-        }
+            font-size: 56px; 
+            font-family: "Calibri", sans-serif; 
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+            padding: 10px; 
+            text-align: center; 
+            margin: 0 auto;
+
+            }
         input[type="radio"] {
         margin-right: 5px; 
         }
-        #user-options{
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
-            padding-top: 20px;
-         }
+        #user-options {
+            text-align: center;
+            flex: 1; 
+        }
         #user-options-links {
-          padding-top: 10px;
-          font-size: 16px;
+            display: flex;
+            flex-direction: column-reverse;
+            align-items: flex-end; 
+            font-size: 16px;
+            text-align: center; 
+            flex-shrink: 0; 
+        }
+        .base-container{
+            border-radius: 10px;
+            background-color: white;
+            padding: 5px 5px 20px 5px;
+            margin: 15px 50px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            height: 60em;
         }
 
-    
+        .header-container {
+            display: flex;
+            justify-content: space-between; 
+            align-items: center; 
+            padding-top: 15px;
+            padding-bottom: 5px;
+            width: 100%; 
+            padding-left: 20px;
+            padding-right: 20px; 
+        }
+   
         
        
     </style>
 </head>
-<body>
+<body>  
+    <div class="base-container" id = "base-container">
+
+    <div class="header-container">
           <div id ="user-options">
                 <h1 id ="header">Chapter Checkup</h1>
+            </div>
+
                 <div id ="user-options-links">
-                <a  href="/sign-in" > Sign In </a>
+               
+                <a  href="/sign-in" >Sign in</a>
             </div>
-            </div>
+        </div>
     <form id="bookForm">
        <div class="formContainer">
           <div id="columns">
@@ -163,7 +192,7 @@
     </form>
     <div id="loadingText" class="loading">Loading</div>
     <div id="bookContent" class="bookContent"></div>
-
+</div>
     <div class="modal" tabindex="-1" id = "quizResultModal" role="dialog">
         <div class="modal-dialog" role="document">
           <div class="modal-content">
@@ -184,7 +213,6 @@
           </div>
         </div>
       </div>
-
  </body>
 <script>
 
@@ -317,6 +345,7 @@ async function callChatGPT(bookTitle, bookChapter, questionCount) {
                 loadingText.style.display = "none";
                 // stop the interval
                 stopLoadingAnimation();
+                document.getElementById("base-container").style.height = "auto";
             }
         }
 

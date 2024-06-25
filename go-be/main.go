@@ -7,6 +7,7 @@ import (
     "html/template"
     "net/http"
     "path/filepath"
+	"encoding/json"
 	"github.com/Nalluh/BookStudy/database"
 	_ "github.com/jackc/pgx/v4/stdlib" 
 	"github.com/gorilla/sessions"
@@ -18,6 +19,13 @@ type FormData struct {
     Email string
 	Password string
 	Confirm_password string
+}
+
+type quizInfo struct{
+	BookTitle string
+	BookChapter int
+	QuizScore float64
+
 }
 
 var store = sessions.NewCookieStore([]byte("secret-key"))
@@ -37,7 +45,8 @@ func main() {
 	http.HandleFunc("/user-sign-up", serveTemplate("signUp.html"))
 	http.HandleFunc("/new-user",submitSignUpForm)
 	http.HandleFunc("/logout", logoutHandler)
-	
+	http.HandleFunc("/profile", serveTemplate("profile.html"))
+	http.HandleFunc("/POST-quiz",postQuizInformation)
 
     // Start the server
     log.Println("Starting server on :8080")
@@ -46,7 +55,42 @@ func main() {
     }
 }	
 
+func postQuizInformation(w http.ResponseWriter, r *http.Request) {
+	//get user id
+	session, err := store.Get(r, "user-logged-in")
+	if err != nil {
+		http.Error(w, "Failed to decode JSON", http.StatusBadRequest)
+		return
+	}
+	// if not post throw error
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	//get quiz info json
+	var quizInfo quizInfo
+	err = json.NewDecoder(r.Body).Decode(&quizInfo)
 
+	if err != nil {
+		http.Error(w, "Failed to decode JSON", http.StatusBadRequest)
+		return
+	}
+
+	fmt.Printf("Received data: %+v\n", quizInfo)
+	fmt.Printf("user id %d", session.Values["user_id"])
+	//insert into database
+	quizInfoQuery := "INSERT INTO book_information (title, chapter, QuizScore,UserID) values ($1,$2,$3,$4)"
+	err = database.Insert(quizInfoQuery,quizInfo.BookTitle, quizInfo.BookChapter, quizInfo.QuizScore, session.Values["user_id"] )
+
+    if err != nil {
+        http.Error(w, "Failed to insert into database", http.StatusInternalServerError)
+        return
+    } 
+
+
+	
+
+}
 
 func serveTemplate(templateFile string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
