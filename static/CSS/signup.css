@@ -1,0 +1,88 @@
+body {
+    background-color: hsl(0, 0%, 96%)          
+}
+.main-container{
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+height: 90vh;
+font-family: Helvetica, "Trebuchet MS", Verdana, sans-serif;
+
+}
+.sign-up-container{
+border-radius: 10px;
+background-color: white;
+padding: 100px;
+width: 550px;
+margin: 50px;
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+.error {
+padding:5px;
+color: red;
+font-size: 0.9em;
+}
+#signup-form{
+display: flex;
+flex-direction: column;
+}
+#sign-up-header{
+margin-bottom: 25px;
+}
+input{
+width: 250px;
+padding: 3px;
+border: 1px solid #ccc;
+border-radius: 5px;
+transition: border-color 0.3s ease-in-out;
+}
+#submit-button{
+width: 69.58px;
+}
+input:focus {
+outline: none;
+border-color: #66afe9;
+box-shadow: 0 0 5px rgba(102, 175, 233, 0.5);
+}
+.password-requirement-container{
+padding: 10px; 
+font-size: 18px;
+
+}
+li p {
+display: inline;
+margin: 0; 
+}
+#password-requirement-length,
+#password-requirement-case, 
+#password-requirement-num, 
+#password-requirement-special{
+color:red;
+}
+
+@keyframes shake {
+0% { transform: translateX(0); }
+10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+20%, 40%, 60%, 80%, 100% { transform: translateX(10px); }
+}
+
+.shake {
+animation: shake 1.0s ease-in-out;
+}
+#header{
+text-align:end;
+font-family: "calibri-";
+}
+.header-and-sign-up-container{
+display: flex;
+flex-direction: column;
+}
+#header-color{
+display: inline;
+color: #66afe9;
+}
+input,label{
+font-size: 18px;
+
+}

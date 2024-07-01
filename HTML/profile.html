@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+    <link rel ="stylesheet" href="/static/CSS/profile.css">
+    <title>Book Quiz Results</title>
+
+</head>
+<body>
+    <div class="header-container">
+        <div id ="user-options">
+              <h1 id ="header">Your Quiz Results</h1>
+          </div>
+              <div id ="user-options-links">
+             <a href ="/home" > Home</a>
+              <a  href="/logout" >Log out </a>
+          </div>
+      </div>
+    <div class="profile-container">
+    <table>
+        <thead>
+            <tr>
+                <th>Book Title</th>
+                <th>Chapter</th>
+                <th>Quiz Score</th>
+                <th>Date Taken</th>
+            </tr>
+        </thead>
+        <tbody id="quizResults">
+        </tbody>
+    </table>
+</div>
+    <script src = "/static/JS/profile.js"></script>
+</body>
+</html>

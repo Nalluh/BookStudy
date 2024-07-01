@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/static/CSS/signup.css">
+    <title>Sign Up Form</title>
+</head>
+<body>
+    <div class ="main-container">
+    <div class= "header-and-sign-up-container">
+    <h1 id ="header">Chapter <p id="header-color">Checkup</p></h1>   
+    <div class= "sign-up-container">
+    <form id="signup-form" action = "/new-user" method="post">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required><br>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required><br>
+        <label for="confirm-password">Confirm Password:</label>
+        <input type="password" id="confirm-password" name="confirm-password" required><br>
+        <button type="submit" id="submit-button" class ="btn btn-primary">Submit</button>
+      </form>
+
+      <div id="error-message" class="error"></div>
+    </div>
+</div>
+
+    <div class ="password-requirement-container">
+        <h3>Password Requirements</h3>
+        <p>Your password should be:</p>
+        <ul>
+            <li>At least 8 characters long <p id ="password-requirement-length"> &#x2715; </p></li>
+            <li>Contain both uppercase and lowercase letters <p id ="password-requirement-case"> &#x2715; </p></li>
+            <li>Include at least one number <p id ="password-requirement-num"> &#x2715; </p></li>
+            <li>Have at least one special character (e.g., !@#$%^&*) <p id ="password-requirement-special"> &#x2715; </p></li>
+        </ul>
+    </div>
+</div>
+</body>
+<script src ="/static/JS/signup.js"></script>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>  
+    <link rel="stylesheet" href="/static/CSS/home.css">
+    <title>Document</title>
+</head>
+<body>  
+    <div class="header-container">
+        <div id ="user-options">
+              <h1 id ="header">Chapter Checkup</h1>
+          </div>
+
+              <div id ="user-options-links">
+             
+              <a  href="/sign-in" >Sign in</a>
+          </div>
+      </div>
+    <div class="base-container" id = "base-container">
+    <form id="bookForm">
+       <div class="formContainer">
+          <div id="columns">
+             <label for="bookInputForm">
+                Book Title:
+             </label>
+             <input type="text" id="bookInputForm" name="bookInput" required>
+          </div>
+          <div id="columns">
+             <label for="bookChapter">
+                Book Chapter:
+             </label>
+             <input type="number" id="bookChapter" name="bookChapterInput" required>
+          </div>
+          <div id="columns">
+             <label for="questionNums">
+                Number of Questions:
+             </label>
+             <input type="number" id="questionNums" name="questionNumsInput" required>
+          </div>
+       </div>
+       <button type="submit" class = "btn btn-seconday" id="submit-button">
+          Submit
+       </button>
+    </form>
+    <div id="loadingText" class="loading">Loading</div>
+    <div id="bookContent" class="bookContent"></div>
+</div>
+    <div class="modal" tabindex="-1" id = "quizResultModal" role="dialog">
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Quiz Results:</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div id ="modal-body-result" class="modal-body">
+                <div id="scoreDisplay"></div>
+                <div id="incorrectAnswers"></div>
+            </div>
+        
+            <div class="modal-footer">
+              <button type="button" id = "modal-close" class="btn btn-primary" data-dismiss="modal" >Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+ </body>
+<script src="/static/JS/home.js"></script>
+</html>
+

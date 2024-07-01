@@ -1,0 +1,141 @@
+body {
+    background-color: hsl(0, 0%, 96%)
+    }
+
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type="number"] {
+        -moz-appearance: textfield;
+    }
+    input{
+        padding: 3px;
+        border-radius: 10px;
+    }
+.formContainer{
+    display: flex;
+    flex-direction: row;
+   justify-content: center;
+   align-items: center;
+   padding: 10px;
+   margin: 5px;
+}
+.bookContent{
+    display: flex;
+    justify-content: center;
+    width: auto;
+}
+
+label{
+    padding: 5px;
+}
+#columns{
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+}
+#submit-button, #quizSubmitBtn{
+    display: block;
+    margin: 0 auto;
+}
+#quizSubmitBtn{
+    margin-bottom: 20px;
+}
+.loading {
+    display: none;
+    font-size: 18px;
+    font-weight: bold;
+    color: #66afe9;
+    text-align: center; 
+    margin-top: 20px; 
+    }
+.factDiv{
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+    text-align: center; 
+    margin-top: 20px; 
+}
+fieldset {
+
+    background: #ffffff;
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 4px solid #bdbdbd;
+    width: 800px;
+        border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+#bookForm{
+    padding: 5px 5px 20px 5px;
+ 
+}
+legend{
+    background: #ffffff;
+    padding: 5px;
+    border-radius: 10px;
+    margin-bottom: 5px;
+}
+
+ul {
+    list-style-type: none;
+    padding: 10px;
+    margin-right: 400px;
+    font-size: 16px;
+}
+#modal-body-result{
+    font-size: 16px;
+    font-weight: bold;
+}
+#incorrectAnswers{
+    padding: 5px;
+}
+#header {
+    color: #66afe9;
+    font-size: 38px; 
+    font-family: "Calibri", sans-serif; 
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+    padding: 10px; 
+    text-align: center; 
+    margin: 0 auto;
+
+    }
+input[type="radio"] {
+margin-right: 5px; 
+}
+#user-options {
+    text-align: center;
+    flex: 1; 
+}
+#user-options-links {
+    display: flex;
+    flex-direction: row ;
+    justify-content: space-between; 
+    align-items: flex-end; 
+    font-size: 16px;
+    text-align: center; 
+    gap: 10px; 
+    flex-shrink: 0; 
+}
+.base-container{
+    border-radius: 10px;
+    background-color: white;
+    padding: 5px 5px 20px 5px;
+    margin: 15px 50px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    min-height: 98vh;        
+}
+
+.header-container {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center; 
+    padding-top: 15px;
+    padding-bottom: 5px;
+    width: 100%; 
+    padding-left: 20px;
+    padding-right: 20px; 
+}

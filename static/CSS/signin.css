@@ -1,0 +1,60 @@
+body {
+    background-color: hsl(0, 0%, 96%)
+    
+    
+}
+.container{
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+height: 90vh;
+font-family: Helvetica, "Trebuchet MS", Verdana, sans-serif;
+
+}
+.loginForm{
+border-radius: 10px;
+background-color: white;
+padding: 120px;
+width: 1000px;
+margin: 50px;
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+.signUpRedirect{
+margin-top: 15px;
+}
+input{
+width: 250px;
+padding: 3px;
+border: 1px solid #ccc;
+border-radius: 5px;
+transition: border-color 0.3s ease-in-out;
+}
+
+input:focus {
+outline: none;
+border-color: #66afe9;
+box-shadow: 0 0 5px rgba(102, 175, 233, 0.5);
+}
+#header{
+color: #66afe9;
+font-family: "calibri";
+}
+.information{
+margin-right: 15px;
+}
+p{
+margin: 3px;
+}
+#description-text{
+font-size: 16px;
+}
+input,label{
+font-size: 18px;
+
+}
+.error {
+padding:5px;
+color: red;
+font-size: 0.9em;
+}
