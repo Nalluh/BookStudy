@@ -25,7 +25,7 @@ type FormData struct {
 	Confirm_password string
 }
 
-type quizInfo struct{
+type quizResult struct{
 	BookTitle string
 	BookChapter int
 	QuizScore float64
@@ -39,6 +39,19 @@ type userInfo struct {
 	QuizId	int
 	QuizDate time.Time
 }
+
+type quizInformation struct {
+	Question []string
+	CorrectAnswer []string
+	UserAnswer []string
+}
+
+type quizInfo struct {
+	Question string
+	CorrectAnswer string
+	UserAnswer string
+}
+
 
 var store = sessions.NewCookieStore([]byte("secret-key"))
 
@@ -60,8 +73,11 @@ func main() {
 	http.HandleFunc("/new-user",submitSignUpForm)
 	http.HandleFunc("/logout", logoutHandler)
 	http.HandleFunc("/profile", serveTemplate("HTML/profile.html"))
-	http.HandleFunc("/POST-quiz",postQuizInformation)
+	http.HandleFunc("/POST-quiz-results",postQuizResult)
 	http.HandleFunc("/GET-user",getUserInformation)
+	http.HandleFunc("/POST-quiz-information",postQuizInformation)
+	http.HandleFunc("/GET-quiz",getQuizInformation)
+
 
 
 
@@ -115,7 +131,7 @@ if r.Method != http.MethodGet{
 	}
 	// query db 
 	var userInfoList []userInfo
-	userQuery := "SELECT title,quizid,chapter,quizscore,date FROM book_information where userid =$1"
+	userQuery := "SELECT title,quizid,chapter,quizscore,date FROM book_information where userid =$1 ORDER BY date DESC"
 
 	rows,err := database.Query(userQuery, session.Values["user_id"])
 	if err != nil {
@@ -140,8 +156,44 @@ if r.Method != http.MethodGet{
 
 }
 
+func getQuizInformation(w http.ResponseWriter, r *http.Request){
+	 // Check if the method is GET
+	 if r.Method != http.MethodGet {
+        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+        return
+    }
+	queryParams := r.URL.Query()
+    param := queryParams.Get("param")
 
-func postQuizInformation(w http.ResponseWriter, r *http.Request) {
+	fmt.Printf("param = %s", param)
+	var quizInfoList []quizInfo
+	quizQuery := "SELECT question, correct_answer, user_answer FROM quiz_information where quizid = $1"
+
+	rows,err := database.Query(quizQuery,param)
+	if err != nil {
+		http.Error(w, "Failed to query database" ,http.StatusInternalServerError)
+	}
+
+	defer rows.Close()
+	var information quizInfo
+
+	for rows.Next(){
+		//grab information 
+		err = rows.Scan(&information.Question, &information.CorrectAnswer, &information.UserAnswer)
+		if err != nil {
+			http.Error(w, "Failed to scan database" ,http.StatusInternalServerError)
+		}
+	
+		//append information
+		quizInfoList = append(quizInfoList, information)
+
+	}
+	w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(quizInfoList)
+}
+
+
+func postQuizResult(w http.ResponseWriter, r *http.Request) {
 	//get user id
 	session, err := store.Get(r, "user-logged-in")
 	if err != nil {
@@ -154,29 +206,98 @@ func postQuizInformation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	//get quiz info json
-	var quizInfo quizInfo
-	err = json.NewDecoder(r.Body).Decode(&quizInfo)
+	var quizResult quizResult
+	var quizID int
+
+	err = json.NewDecoder(r.Body).Decode(&quizResult)
 
 	if err != nil {
 		http.Error(w, "Failed to decode JSON", http.StatusBadRequest)
 		return
 	}
 
-	fmt.Printf("Received data: %+v\n", quizInfo)
-	fmt.Printf("user id %d", session.Values["user_id"])
+	fmt.Printf("Received data: %+v\n", quizResult)
+	fmt.Printf("user id %d \n", session.Values["user_id"])
+
 	//insert into database
-	quizInfoQuery := "INSERT INTO book_information (title, chapter, QuizScore,UserID) values ($1,$2,$3,$4)"
-	err = database.Insert(quizInfoQuery,quizInfo.BookTitle, quizInfo.BookChapter, quizInfo.QuizScore, session.Values["user_id"] )
+	// return the quizid so we can use it as fk 
+	quizResultQuery := "INSERT INTO book_information (title, chapter, QuizScore, UserID) VALUES ($1, $2, $3, $4) RETURNING quizid"
+	err = database.QueryRow(quizResultQuery,quizResult.BookTitle, quizResult.BookChapter, quizResult.QuizScore, session.Values["user_id"] ).Scan(&quizID)
 
     if err != nil {
         http.Error(w, "Failed to insert into database", http.StatusInternalServerError)
         return
     } 
+	//set quiz id to session to grab at other endpoint
+	session.Values["quiz_id"] = quizID
+    err = session.Save(r, w)
+
+    if err != nil {
+        http.Error(w, "Failed to save session", http.StatusInternalServerError)
+        return
+    }
+
+	w.WriteHeader(http.StatusOK)
 
 
 	
 
 }
+//post quiz q&a information to the database 
+func postQuizInformation(w http.ResponseWriter, r *http.Request){
+
+	//get user id
+	session, err := store.Get(r, "user-logged-in")
+	if err != nil {
+		http.Error(w, "Failed to decode JSON", http.StatusBadRequest)
+		return
+	}
+	//grab quizid from session
+	quizID, ok := session.Values["quiz_id"].(int) 
+    if !ok{
+        http.Error(w, "Quiz ID not found in session", http.StatusInternalServerError)
+        return
+    }
+	
+
+	// if not post throw error
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	var quizInfo quizInformation
+	err = json.NewDecoder(r.Body).Decode(&quizInfo)
+	if err != nil {
+		http.Error(w, "Failed to decode JSON", http.StatusBadRequest)
+		return
+	}
+	fmt.Printf("Received data: %+v\n", quizInfo)
+	quizInfoQuery := "INSERT into quiz_information (question, correct_answer,user_answer,question_number, user_id,quizid) values ($1,$2,$3,$4,$5,$6)"
+
+	questionNumber := 1
+
+		for i := range quizInfo.Question {
+	
+		err := database.Insert(
+			quizInfoQuery,
+			quizInfo.Question[i],        // $1: Question text
+			quizInfo.CorrectAnswer[i],   // $2: Correct answer
+			quizInfo.UserAnswer[i],      // $3: User answer
+			questionNumber,              // $4: Question number 
+			session.Values["user_id"],   // $5: User ID
+			quizID,                       // $6: Quiz ID
+		)
+		
+		if err != nil {
+			log.Printf("Failed to insert question %d: %v", questionNumber, err)
+		} 
+
+		questionNumber++
+	}
+}
+
+
+
 
 
 func serveTemplate(templateFile string) http.HandlerFunc {
@@ -376,4 +497,7 @@ func submitSignUpForm(w http.ResponseWriter, r *http.Request) {
 
 
 }
+
+
+
 

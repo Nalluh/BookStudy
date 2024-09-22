@@ -11,7 +11,7 @@ const bookContent = document.getElementById("bookContent");
 //when button is submitted
 document.getElementById('bookForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    console.log(bookTitle.value + " " + bookChapter.value);
+   // console.log(bookTitle.value + " " + bookChapter.value);
     //reset content div
     bookContent.innerHTML = "";
     //remove none from styling to show loading. -> loading.. etc animation
@@ -112,7 +112,7 @@ async function callChatGPT(bookTitle, bookChapter, questionCount) {
 
                 const responseData = await response.json();
                 // verify response
-                console.log(responseData.choices);
+               // console.log(responseData.choices);
                 //seperate response into an array
                 const bookChapters = (separateChapters(responseData.choices[0].message.content));
                 // clear book content for quiz
@@ -134,7 +134,7 @@ async function callChatGPT(bookTitle, bookChapter, questionCount) {
 
     //organize book chapters into a form with the question as header
     // in an unordered list with the answers options as li
-function createAndShowQuiz(bookChapters,bookTitle, bookChapter) {
+function createAndShowQuiz(quizInfo,bookTitle, bookChapter) {
     let counter = 0;
     let questionList = null;
     let questions = [];
@@ -142,7 +142,7 @@ function createAndShowQuiz(bookChapters,bookTitle, bookChapter) {
     let questionNumber = 1;
     const form = document.createElement("form");
     
-    bookChapters.forEach((element, index) => {
+    quizInfo.forEach((element, index) => {
         if (element != "") { 
             // c = 0 means we are at the question
             if (counter === 0) {
@@ -160,8 +160,8 @@ function createAndShowQuiz(bookChapters,bookTitle, bookChapter) {
                 // save it in array
                 if (counter > 4) {
                     answers.push(element);
-                    console.log(questionNumber);
-                    console.log(element);
+                    //console.log(questionNumber);
+                    //console.log(element);
                     counter = 0;
                     questionNumber++;
                 } else if(counter < 5) { 
@@ -198,7 +198,7 @@ function createAndShowQuiz(bookChapters,bookTitle, bookChapter) {
     bookContent.appendChild(form);
 
     // when form is submitted check if answers are correct 
-    form.addEventListener("submit", submitQuizForm(answers,questions,bookTitle,bookChapter));
+    form.addEventListener("submit", submitQuizForm(quizInfo,answers,questions,bookTitle,bookChapter));
 
 }
 
@@ -218,7 +218,7 @@ async function grabRandomFact(){
                 }
 
                 const responseData = await response.json();
-                console.log(responseData[0].fact)
+               // console.log(responseData[0].fact)
                 return responseData[0].fact;
 
                 }catch (error) {
@@ -226,7 +226,7 @@ async function grabRandomFact(){
             }
             }
 
- function submitQuizForm(correctAnswers,questions,bookTitle,bookChapter) {
+ function submitQuizForm(quizInfo,correctAnswers,questions,bookTitle,bookChapter) {
                 return function(e) {
                    e.preventDefault(); // Prevent form submission
                    let incorrectQuestions = [];
@@ -234,7 +234,7 @@ async function grabRandomFact(){
                    const incorrectAnswersDisplay = document.getElementById("incorrectAnswers");
                    const closeButton = document.getElementById("modal-close");
                    const userAnswers = [];
-
+                    
                    //get user selected answers 
                     const radioInputs = document.querySelectorAll("input[type='radio']:checked");
                      // Check answers
@@ -268,16 +268,32 @@ async function grabRandomFact(){
                         incorrectAnswersDisplay.innerHTML = "Congratulations on the perfect score! Well done!";
                     }
 
-                    postQuizData(bookTitle,bookChapter,percentageScore);
+                    handleQuizSubmission(bookTitle, bookChapter, percentageScore, quizInfo, correctAnswers, questions, userAnswers);
+
+
+                    
                     //when modal is closed reset information 
                     closeButton.addEventListener("click", function(){
                         incorrectAnswersDisplay.innerHTML = "";
                     })
                 };
 }
+            //function will handle submission flow
+            async function handleQuizSubmission(bookTitle, bookChapter, percentageScore, quizInfo, correctAnswers, questions, userAnswers) {
+                const resultResponse = await postQuizResult(bookTitle, bookChapter, percentageScore);
+                //we need to assure that the quiz is submitted and a quizid (PK) is created
+                if (resultResponse && resultResponse.ok) {
+                    //once we have submitted quiz to db we can submit questions 
+                    // and have the secondary table receive the quizid (FK)
+                    formatQuizInformation(quizInfo, correctAnswers, questions, userAnswers);
+                } else {
+                    console.error("Failed to submit quiz result");
+                }
+            }
                 // post quiz information to backend 
-                async function postQuizData(Title,Chapter,Score) {
-                const url = 'http://localhost:8080/POST-quiz';
+                async function postQuizResult(Title,Chapter,Score) {
+                    console.log(Title)
+                const url = 'http://localhost:8080/POST-quiz-results';
                 const postData = {
                     bookTitle: Title,
                     bookChapter: Number(Chapter),
@@ -296,8 +312,91 @@ async function grabRandomFact(){
                     if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                     }
+                    return response;
                 } catch (error) {
                     console.error('Error:', error);
                 }
+                
                 }
+           
+                
+                function formatQuizInformation(quizInfo,correctAns,questions,userAnswers){
+                    let questionIndex = 0;
+                    let correctAnswerIndex = 0;
+                    let userAnswerIndex = 0;
+                    let dbCorrectAns = [];
+                    let dbUserAns = [];
+                    let scanAnswerSelections = false;
+                    let correctAnsFound  = false;
+                    let userAnsFound = false;
+          
+  
+                    quizInfo.forEach((element,index) => {
+                       // verify initial value of array is question #1 
+                        if(element === questions[questionIndex]){
+                            // go next question in array
+                            questionIndex++;
+                            // set boolean values to search through question options
+                            scanAnswerSelections = true;
+                            correctAnsFound  = false;   
+                            userAnsFound = false;                     
+                        } 
+                        // once a new question has been found we can search through the options
+                        if(scanAnswerSelections){
+                            // if the correct answer has not been found in the options
+                           if(!correctAnsFound){ 
+                            // we will match the first char of the options (which is the answer ) with the correct ans choice
+                            if(element[0] === correctAns[correctAnswerIndex].slice(-1)){
+                                // append element starting at 3rd element 
+                                //EX: A. Generic answer will be sliced to Generic answer 
+                               dbCorrectAns.push(element.slice(3));
+                               // go next question answer
+                               correctAnswerIndex++;
+                               // since we found the answer choice do not allow further checks 
+                               correctAnsFound = true;
+                          
+                            }
+                        }
+                         // if the correct answer has not been found in the options
+                            if(!userAnsFound){
+                         // we will match the first char of the options (which is the user answer ) with the ans choice
+                                if(element[0] === userAnswers[userAnswerIndex].slice(-1)){
+                                dbUserAns.push(element.slice(3));
+                                userAnswerIndex++;
+                                userAnsFound = true;
+                           
+                        }
+                            }
+                        }               
+                    });
+                    postQuizInformation(questions,dbCorrectAns,dbUserAns);
+                    
+                  }
 
+                //send quiz information to backend db 
+                async function postQuizInformation(questions,correctAns, userAns){
+                    const url = "http://localhost:8080/POST-quiz-information";
+                    const postData = {
+                        question:questions,
+                        CorrectAnswer:correctAns,
+                        UserAnswer:userAns
+                    };
+                    try{
+                        const response = await fetch(url, { 
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(postData),
+                        });
+    
+                        if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                    }
+                }
+         
+
+                 

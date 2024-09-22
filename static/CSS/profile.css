@@ -63,3 +63,21 @@ body {
     margin: 0 auto;
 
     }
+
+    #pagination{
+        display: flex;
+        flex-direction: row;
+        max-width: 800px;
+        margin: 20px auto;
+
+    }
+    #nextButton{
+        margin-left: auto;
+        padding-left: 15px;
+        padding-right: 15px;
+    
+    }
+    #prevButton{
+        margin-right: auto; 
+
+    }
